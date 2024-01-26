@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  app:
+    build:
+      context: .
+      args:
+        APP_NAME: google-ddns
+    environment:
+      - DDNS_API_KEY=test
+      - DDNS_SECRET_KEY=test
+      - DDNS_HOST=test.dev
+      - DDNS_MINUTES_INTERVAL=120
+    container_name: google-ddns
+    restart: unless-stopped
+    volumes:
+      - "./log4rs.yaml:/etc/google-ddns/log4rs.yaml"
+      - "/etc/localtime:/etc/localtime"
