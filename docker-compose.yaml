@@ -15,4 +15,5 @@ services:
     restart: unless-stopped
     volumes:
       - "./log4rs.yaml:/etc/porkbun-ddns-rs/log4rs.yaml"
+      - "./requests.log:/requests.log"
       - "/etc/localtime:/etc/localtime"
