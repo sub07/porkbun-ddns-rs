@@ -5,7 +5,7 @@ pub fn setup_logger() {
     #[cfg(debug_assertions)]
     const LOG4RS_PATH: &str = "log4rs.yaml";
     #[cfg(not(debug_assertions))]
-    const LOG4RS_PATH: &str = "/etc/google-ddns/log4rs.yaml";
+    const LOG4RS_PATH: &str = "/etc/porkbun-ddns/log4rs.yaml";
 
     log4rs::init_file(LOG4RS_PATH, Default::default()).unwrap();
 }

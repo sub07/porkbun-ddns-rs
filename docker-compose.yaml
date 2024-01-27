@@ -5,14 +5,14 @@ services:
     build:
       context: .
       args:
-        APP_NAME: google-ddns
+        APP_NAME: porkbun-ddns-rs
     environment:
       - DDNS_API_KEY=test
       - DDNS_SECRET_KEY=test
       - DDNS_HOST=test.dev
       - DDNS_MINUTES_INTERVAL=120
-    container_name: google-ddns
+    container_name: porkbun-ddns-rs
     restart: unless-stopped
     volumes:
-      - "./log4rs.yaml:/etc/google-ddns/log4rs.yaml"
+      - "./log4rs.yaml:/etc/porkbun-ddns-rs/log4rs.yaml"
       - "/etc/localtime:/etc/localtime"
