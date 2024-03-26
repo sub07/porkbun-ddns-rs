@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use anyhow::ensure;
+use anyhow::{anyhow, ensure};
 use const_format::concatcp;
 use log::{info, warn};
 use reqwest::blocking::Client;
@@ -12,7 +12,7 @@ const PORKBUN_API_URL_BASE: &str = "https://porkbun.com/api/json/v3/";
 pub struct Context {
     pub api_key: String,
     pub secret_key: String,
-    pub host: String,
+    pub domain: String,
     pub wait_interval: Duration,
     pub client: Client,
 }
@@ -22,7 +22,7 @@ impl Context {
         let api_key = std::env::var("DDNS_API_KEY").expect("DDNS_API_KEY env variable is not set");
         let secret_key =
             std::env::var("DDNS_SECRET_KEY").expect("DDNS_SECRET_KEY env variable is not set");
-        let host = std::env::var("DDNS_HOST").expect("DDNS_HOST env variable is not set");
+        let domain = std::env::var("DDNS_DOMAIN").expect("DDNS_DOMAIN env variable is not set");
 
         const USER_AGENT: &str = concat!("Porkbun-DDNS", env!("CARGO_PKG_VERSION"));
         let client = Client::builder()
@@ -54,7 +54,7 @@ impl Context {
         Context {
             api_key,
             secret_key,
-            host,
+            domain,
             wait_interval,
             client,
         }
@@ -78,21 +78,28 @@ impl Context {
         Ok(response.your_ip)
     }
 
-    pub fn post_id(&self, new_ip: &str) -> anyhow::Result<String> {
-        const EDIT_DNS_ENDPOINT: &str = "dns/editByNameType/mpardo.me/A/";
+    pub fn post_ip(&self, subdomains: &[&str], new_ip: &str) -> anyhow::Result<()> {
+        for subdomain in subdomains {
+            let url = format!(
+                "{PORKBUN_API_URL_BASE}dns/editByNameType/{}/A/{}",
+                self.domain, subdomain,
+            );
 
-        let request_body = serde_json::to_string(&EditDnsRequest {
-            api_key: self.api_key.clone(),
-            secret_key: self.secret_key.clone(),
-            ttl: 600,
-            content: new_ip.to_string(),
-        })?;
+            let request_body = serde_json::to_string(&EditDnsRequest {
+                api_key: self.api_key.clone(),
+                secret_key: self.secret_key.clone(),
+                ttl: 600,
+                content: new_ip.to_string(),
+            })?;
 
-        Ok(self
-            .client
-            .post(concatcp!(PORKBUN_API_URL_BASE, EDIT_DNS_ENDPOINT))
-            .body(request_body)
-            .send()?
-            .text()?)
+            self.client
+                .post(url)
+                .body(request_body)
+                .send()
+                .map_err(|err| anyhow!("{subdomain}: {err}"))?
+                .text()?;
+        }
+
+        Ok(())
     }
 }

@@ -22,8 +22,8 @@ fn main() {
 
                 if ip != last_ip {
                     info!("Different ip, posting new ip");
-                    match context.post_id(&ip) {
-                        Ok(res) => info!("Post ip response: {res}"),
+                    match context.post_ip(&["", "joy"], &ip) {
+                        Ok(()) => info!("Ip posted"),
                         Err(err) => error!("Error while posting ip: {err}"),
                     }
                     last_ip = ip;
@@ -32,7 +32,6 @@ fn main() {
                 }
             }
             Err(err) => error!("Error while fetch ip: {err}"),
-            
         }
 
         thread::sleep(context.wait_interval);

@@ -1,0 +1,30 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "run task",
+            "type": "shell",
+            "command": "cargo",
+            "args": [
+                "run"
+            ],
+            "options": {
+                "env": {
+                    "DDNS_API_KEY": "<secret>",
+                    "DDNS_SECRET_KEY": "<secret>",
+                    "DDNS_DOMAIN": "test.dev",
+                }
+            }
+        },
+        {
+            "label": "build task",
+            "type": "shell",
+            "command": "cargo",
+            "args": [
+                "build"
+            ],
+        }
+    ]
+}

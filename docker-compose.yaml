@@ -9,7 +9,7 @@ services:
     environment:
       - DDNS_API_KEY=test
       - DDNS_SECRET_KEY=test
-      - DDNS_HOST=test.dev
+      - DDNS_DOMAIN=test.dev
       - DDNS_MINUTES_INTERVAL=120
     container_name: porkbun-ddns-rs
     restart: unless-stopped
