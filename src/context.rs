@@ -7,7 +7,7 @@ use reqwest::blocking::Client;
 
 use crate::request::{EditDnsRequest, PingRequest, PingResponse};
 
-const PORKBUN_API_URL_BASE: &str = "https://porkbun.com/api/json/v3/";
+const PORKBUN_API_URL_BASE: &str = "https://api.porkbun.com/api/json/v3/";
 
 pub struct Context {
     pub api_key: String,
