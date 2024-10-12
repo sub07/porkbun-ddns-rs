@@ -22,8 +22,8 @@ fn main() {
 
                 if ip != last_ip {
                     info!("Different ip, posting new ip");
-                    match context.post_ip(&[""], &ip) {
-                        Ok(()) => info!("Ip posted"),
+                    match context.post_ip(&ip) {
+                        Ok(()) => info!("New ip posted sucessfully"),
                         Err(err) => error!("Error while posting ip: {err}"),
                     }
                     last_ip = ip;

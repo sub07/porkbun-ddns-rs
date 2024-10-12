@@ -1,13 +1,13 @@
 use std::time::Duration;
 
-use anyhow::{anyhow, ensure};
+use anyhow::{bail, ensure};
 use const_format::concatcp;
-use log::{info, warn};
-use reqwest::blocking::Client;
+use log::{error, info, warn};
+use reqwest::{blocking::Client, StatusCode};
 
 use crate::request::{EditDnsRequest, PingRequest, PingResponse};
 
-const PORKBUN_API_URL_BASE: &str = "https://api.porkbun.com/api/json/v3/";
+const PORKBUN_API_URL_BASE: &str = "https://api.porkbun.com/api/json/v3";
 
 pub struct Context {
     pub api_key: String,
@@ -61,7 +61,7 @@ impl Context {
     }
 
     pub fn get_ip(&self) -> anyhow::Result<String> {
-        const PING_ENDPOINT: &str = "ping/";
+        const PING_ENDPOINT: &str = "/ping/";
         let request_body = serde_json::to_string(&PingRequest {
             api_key: self.api_key.clone(),
             secret_key: self.secret_key.clone(),
@@ -78,26 +78,31 @@ impl Context {
         Ok(response.your_ip)
     }
 
-    pub fn post_ip(&self, subdomains: &[&str], new_ip: &str) -> anyhow::Result<()> {
-        for subdomain in subdomains {
-            let url = format!(
-                "{PORKBUN_API_URL_BASE}dns/editByNameType/{}/A/{}",
-                self.domain, subdomain,
-            );
+    pub fn post_ip(&self, new_ip: &str) -> anyhow::Result<()> {
+        let url = format!(
+            "{PORKBUN_API_URL_BASE}/dns/editByNameType/{}/A/",
+            self.domain,
+        );
 
-            let request_body = serde_json::to_string(&EditDnsRequest {
-                api_key: self.api_key.clone(),
-                secret_key: self.secret_key.clone(),
-                ttl: 600,
-                content: new_ip.to_string(),
-            })?;
+        let request_body = serde_json::to_string(&EditDnsRequest {
+            api_key: self.api_key.clone(),
+            secret_key: self.secret_key.clone(),
+            ttl: 600,
+            content: new_ip.to_string(),
+        })?;
 
-            self.client
-                .post(url)
-                .body(request_body)
-                .send()
-                .map_err(|err| anyhow!("{subdomain}: {err}"))?
-                .text()?;
+        let response = self.client.post(url).body(request_body).send()?;
+        let response_status = response.status();
+        let response_text = response.text()?;
+
+        match response_status {
+            StatusCode::OK => {}
+            StatusCode::BAD_REQUEST => {
+                bail!("400 bad request, could be the same ip is already registered if message is \"Edit error: We were unable to edit the DNS record.\" : {response_text}")
+            }
+            _ => {
+                bail!("Ip posting failed : {response_text}");
+            }
         }
 
         Ok(())
